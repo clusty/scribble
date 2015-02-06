@@ -66,10 +66,16 @@ bool ScribbleArea::openImage(const QString &fileName)
 
     QSize newSize = loadedImage.size().expandedTo(size());
     resizeImage(&loadedImage, newSize);
-    dataImage = displayImage = Sobel(loadedImage);
+    dataImage = Sobel(loadedImage);
+    cv::Mat gradx, grady;
+    Cost(loadedImage, gradx, grady);
+    cv::Mat viewM;
+    cv::convertScaleAbs(gradx, viewM);
+    //dataImage = ASM::cvMatToQImage(viewM).convertToFormat(QImage::Format_RGB32);
+    displayImage = dataImage;
     
     g = Graph(dataImage.width(), dataImage.height(), &dataImage );
-    
+    //g = Graph(dataImage.width(), dataImage.height(), gradx, grady );
     modified = false;
     update();
     return true;
@@ -201,7 +207,8 @@ void ScribbleArea::resizeImage(QImage *image, const QSize &newSize)
 
 bool ScribbleArea::eventFilter(QObject *, QEvent *event)
 {
-  if (event->type() == QEvent::MouseMove)
+  if (event->type() == QEvent::MouseMove && 
+      QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
   {
     QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
     //qDebug() << "x: "<<mouseEvent->x()<<"y: "<<mouseEvent->y();
@@ -215,9 +222,6 @@ bool ScribbleArea::eventFilter(QObject *, QEvent *event)
       path = aStar(g, start, target );
       
       QPainter painter(&displayImage);
-     /* painter.setPen(QPen(QColor(0,0,255), 20, Qt::SolidLine, Qt::RoundCap,
-                          Qt::RoundJoin));
-      painter.drawPoint(lastPoint);*/
       
       painter.setPen(QPen(QColor(255,0,0), 2, Qt::SolidLine, Qt::RoundCap,
                           Qt::RoundJoin));
