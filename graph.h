@@ -5,7 +5,9 @@
 #include <queue>
 #include <map>
 #include <cmath>
-#include <QImage>
+
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgproc/types_c.h"
 
 template<typename T, typename Number=int>
 struct PriorityQueue {
@@ -32,7 +34,12 @@ public:
    typedef std::pair<int, int> Location;
    typedef std::set<Location> Neighbours;
    Graph(){}
-   Graph(int w, int h, const QImage* cost):_width(w), _height(h), _cost(cost){}
+   Graph(int w, int h, cv::Mat* lGrad, cv::Mat* pGrad, cv::Mat* lapZ):_width(w), 
+                                                                                         _height(h), 
+                                                                                         _lGrad(lGrad),
+                                                                                         _pGrad(pGrad),
+                                                                                         _lapZ(lapZ)
+   {}
    std::set<Location> getNeighbours(const Location &l) const
    {
       std::set<Location> neighbours;
@@ -50,15 +57,24 @@ public:
    
    float cost(const Location&a , const Location& b) const
    {
-      QPoint x(a.first, a.second);
-      QPoint y(b.first, b.second);
-      float c = qRed(_cost->pixel(y)) / 255.0;
-      return /*std::sqrt( (x-y).manhattanLength() )+ */2*(c);
+      const float wz = 0.43; // lap
+      const float wg = 0.14; // mag
+      const float wd = 0.43; // dir
+
+      
+      const float gm = _lGrad->at<float>(b.first, b.second);
+      
+      const float aa = _pGrad->at<float>(a.first, a.second);
+      const float ba = _pGrad->at<float>(b.first, b.second);
+      const float ga = 1 / (cos(aa) * cos(ba) + sin(aa) * sin(ba) );
+      const float lap = _lapZ->at<float>(b.first, b.second);
+      
+      return wz * lap + wg * gm + wd * ga;
    }
    
 private:
 int _width, _height;   
-const QImage *_cost;
+cv::Mat *_lGrad, *_pGrad ,*_lapZ;
 };
 
 std::vector<Graph::Location> 

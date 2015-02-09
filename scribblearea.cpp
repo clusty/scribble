@@ -66,15 +66,14 @@ bool ScribbleArea::openImage(const QString &fileName)
 
     QSize newSize = loadedImage.size().expandedTo(size());
     resizeImage(&loadedImage, newSize);
-    dataImage = Sobel(loadedImage);
-    cv::Mat gradx, grady;
-    Cost(loadedImage, gradx, grady);
+
+    Cost(loadedImage, lGrad, pGrad, lapZ);
     cv::Mat viewM;
-    cv::convertScaleAbs(gradx, viewM);
-    //dataImage = ASM::cvMatToQImage(viewM).convertToFormat(QImage::Format_RGB32);
+    cv::convertScaleAbs(lGrad, viewM, 255);
+    dataImage = ASM::cvMatToQImage(viewM).convertToFormat(QImage::Format_RGB32);
     displayImage = dataImage;
     
-    g = Graph(dataImage.width(), dataImage.height(), &dataImage );
+    g = Graph(dataImage.width(), dataImage.height(), &lGrad, &pGrad, &lapZ );
     //g = Graph(dataImage.width(), dataImage.height(), gradx, grady );
     modified = false;
     update();

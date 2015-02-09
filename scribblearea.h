@@ -88,6 +88,8 @@ private:
     QImage dataImage;
     
     Graph g;
+    cv::Mat lGrad, pGrad, lapZ;
+    
     
     QPoint lastPoint;
 };
