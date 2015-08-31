@@ -209,7 +209,7 @@ void MainWindow::createMenus()
 bool MainWindow::maybeSave()
 //! [17] //! [18]
 {
-    if (scribbleArea->isModified()) {
+    /*if (scribbleArea->isModified()) {
        QMessageBox::StandardButton ret;
        ret = QMessageBox::warning(this, tr("Scribble"),
                           tr("The image has been modified.\n"
@@ -221,7 +221,7 @@ bool MainWindow::maybeSave()
         } else if (ret == QMessageBox::Cancel) {
             return false;
         }
-    }
+    }*/
     return true;
 }
 //! [18]

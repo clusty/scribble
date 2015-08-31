@@ -61,7 +61,6 @@ public:
     void setPenColor(const QColor &newColor);
     void setPenWidth(int newWidth);
 
-    bool isModified() const { return modified; }
     QColor penColor() const { return myPenColor; }
     int penWidth() const { return myPenWidth; }
 
@@ -70,18 +69,13 @@ public slots:
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
 private:
     bool eventFilter(QObject *, QEvent *event);
-    void drawLineTo(const QPoint &endPoint, int width);
     void resizeImage(QImage *displayImage, const QSize &newSize);
 
-    bool modified;
-    bool scribbling;
     int myPenWidth;
     QColor myPenColor;
     QImage displayImage;
