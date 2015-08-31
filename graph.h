@@ -18,6 +18,12 @@ struct PriorityQueue {
   inline void put(T item, Number priority) {
     elements.push(std::make_pair(priority, item) );
   }
+  
+  void clear()
+  {
+    elements = std::priority_queue<PQElement, std::vector<PQElement>, 
+          std::greater<PQElement> >();     
+  }
 
   inline T get() {
     T best_item = elements.top().second;
@@ -32,7 +38,12 @@ public:
    typedef std::pair<int, int> Location;
    typedef std::set<Location> Neighbours;
    Graph(){}
-   Graph(int w, int h, const QImage* cost):_width(w), _height(h), _cost(cost){}
+   Graph(int w, int h, const QImage* cost):_width(w), _height(h), _cost(cost){};
+   void setStart( Location ); 
+   std::vector<Graph::Location> 
+   aStar( const Graph::Location& goal );
+private:
+   
    std::set<Location> getNeighbours(const Location &l) const
    {
       std::set<Location> neighbours;
@@ -48,21 +59,31 @@ public:
       return neighbours;
    }
    
+   inline
+   
+   inline float heuristic(const Graph::Location& a, const Graph::Location& b) 
+   {
+     return abs(a.first - b.first) + abs(a.second - b.second);
+   }
+   
    float cost(const Location&a , const Location& b) const
    {
       QPoint x(a.first, a.second);
       QPoint y(b.first, b.second);
       float c = qRed(_cost->pixel(y)) / 255.0;
-      return /*std::sqrt( (x-y).manhattanLength() )+ */2*(c);
+      return 1000* c;
    }
    
-private:
+   
 int _width, _height;   
 const QImage *_cost;
+Location start;
+std::map<Graph::Location, float> cost_so_far;
+std::map<Graph::Location, Graph::Location> came_from;
+PriorityQueue<Graph::Location, float> frontier;
 };
 
-std::vector<Graph::Location> 
-aStar( const Graph& graph, const Graph::Location& start, const Graph::Location& goal );
+
 
 
 #endif // GRAPH

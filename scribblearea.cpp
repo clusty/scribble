@@ -75,7 +75,6 @@ bool ScribbleArea::openImage(const QString &fileName)
     displayImage = dataImage;
     
     g = Graph(dataImage.width(), dataImage.height(), &dataImage );
-    //g = Graph(dataImage.width(), dataImage.height(), gradx, grady );
     modified = false;
     update();
     return true;
@@ -130,6 +129,7 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
         lastPoint = event->pos()-QPoint(1, 1);
+        g.setStart(std::make_pair(lastPoint.x(), lastPoint.y()));
         scribbling = true;
     }
 }
@@ -217,15 +217,16 @@ bool ScribbleArea::eventFilter(QObject *, QEvent *event)
       displayImage = dataImage; 
       Graph::Location start, target;
       std::vector<Graph::Location> path;
-      start.first = mouseEvent->x(); start.second = mouseEvent->y();
-      target.first = lastPoint.x(); target.second = lastPoint.y();
-      path = aStar(g, start, target );
+      target.first = mouseEvent->x(); target.second = mouseEvent->y();
+      start.first = lastPoint.x(); start.second = lastPoint.y();
+      g.setStart(start);
+      path = g.aStar(target );
       
       QPainter painter(&displayImage);
       
       painter.setPen(QPen(QColor(255,0,0), 2, Qt::SolidLine, Qt::RoundCap,
                           Qt::RoundJoin));
-      QPoint a = lastPoint;
+      QPoint a = mouseEvent->pos();
       
       for ( std::vector<Graph::Location>::const_iterator it = path.begin();
             it != path.end(); ++it)

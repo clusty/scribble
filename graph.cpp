@@ -1,22 +1,20 @@
 #include "graph.h"
 
-inline int heuristic(const Graph::Location& a, const Graph::Location& b) 
+void Graph::setStart( Graph::Location aStart )
 {
-  return abs(a.first - b.first) + abs(a.second - b.second);
+   start = aStart;
+   cost_so_far.clear();
+   came_from.clear();
+   frontier.clear();
+   
+   frontier.put(start, 0);
+   came_from[start] = start;
+   cost_so_far[start] = 0;   
 }
 
 std::vector<Graph::Location> 
-aStar( const Graph& graph, const Graph::Location& start, const Graph::Location& goal )
-{
-   
-   std::map<Graph::Location, float> cost_so_far;
-   std::map<Graph::Location, Graph::Location> came_from;
-   
-   PriorityQueue<Graph::Location, float> frontier;
-   frontier.put(start, 0);
-   came_from[start] = start;
-   cost_so_far[start] = 0;
-   
+Graph::aStar( const Graph::Location& goal )
+{   
    while (!frontier.empty())
    {
       Graph::Location current = frontier.get();
@@ -25,12 +23,12 @@ aStar( const Graph& graph, const Graph::Location& start, const Graph::Location& 
          break;
       }
       
-      Graph::Neighbours n = graph.getNeighbours( current );
+      Graph::Neighbours n = getNeighbours( current );
       for ( Graph::Neighbours::const_iterator it = n.begin();
             it!= n.end(); ++it )
       {
          Graph::Location next = *it;
-         float new_cost = cost_so_far[current] + graph.cost(current, next);
+         float new_cost = cost_so_far[current] + cost(current, next);
          if (!cost_so_far.count(next) || new_cost < cost_so_far[next]) 
          {
             cost_so_far[next] = new_cost;

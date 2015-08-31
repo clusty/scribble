@@ -15,4 +15,3 @@ LIBS += /usr/local/Cellar/opencv/2.4.12/lib/libopencv_calib3d.dylib /usr/local/C
 target.path = $$[QT_INSTALL_EXAMPLES]/widgets/widgets/scribble
 INSTALLS += target
 
-#CONFIG += c++0x
