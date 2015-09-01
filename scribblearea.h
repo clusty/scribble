@@ -80,10 +80,12 @@ private:
     QColor myPenColor;
     QImage displayImage;
     QImage dataImage;
+    QImage loadedImage;
     
     Graph g;
     
     QPoint lastPoint;
+    std::vector<Graph::Location> path,currpath;
 };
 //! [0]
 

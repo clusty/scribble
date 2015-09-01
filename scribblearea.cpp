@@ -4,6 +4,7 @@
 
 #include "imageproc.h"
 
+static bool displayData = false;
 
 ScribbleArea::ScribbleArea(QWidget *parent)
     : QWidget(parent)
@@ -15,19 +16,16 @@ ScribbleArea::ScribbleArea(QWidget *parent)
 
 bool ScribbleArea::openImage(const QString &fileName)
 {
-    QImage loadedImage;
     if (!loadedImage.load(fileName))
         return false;
 
     QSize newSize = loadedImage.size().expandedTo(size());
     resizeImage(&loadedImage, newSize);
     dataImage = Sobel(loadedImage);
-    cv::Mat gradx, grady;
-    Cost(loadedImage, gradx, grady);
-    cv::Mat viewM;
-    cv::convertScaleAbs(gradx, viewM);
+   
     //dataImage = ASM::cvMatToQImage(viewM).convertToFormat(QImage::Format_RGB32);
     displayImage = dataImage;
+    update();
     
     g = Graph(dataImage.width(), dataImage.height(), &dataImage );
     update();
@@ -67,6 +65,8 @@ void ScribbleArea::mousePressEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton) {
         lastPoint = event->pos()-QPoint(1, 1);
         g.setStart(std::make_pair(lastPoint.x(), lastPoint.y()));
+        path.insert(path.end(), currpath.rbegin(), currpath.rend());
+        currpath.clear();
     }
 }
 
@@ -75,6 +75,7 @@ void ScribbleArea::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     QRect dirtyRect = event->rect();
     painter.drawImage(dirtyRect, displayImage, dirtyRect);
+    update();
 }
 
 void ScribbleArea::resizeEvent(QResizeEvent *event)
@@ -109,29 +110,56 @@ bool ScribbleArea::eventFilter(QObject *, QEvent *event)
       QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
       //qDebug() << "x: "<<mouseEvent->x()<<"y: "<<mouseEvent->y();
       
-      displayImage = dataImage; 
+      displayImage = displayData ? dataImage : loadedImage; 
       Graph::Location start, target;
-      std::vector<Graph::Location> path;
       target.first = mouseEvent->x(); target.second = mouseEvent->y();
       start.first = lastPoint.x(); start.second = lastPoint.y();
       g.setStart(start);
-      path = g.aStar(target );
+      currpath = g.aStar(target );      
       
       QPainter painter(&displayImage);
       
-      painter.setPen(QPen(QColor(255,0,0), 2, Qt::SolidLine, Qt::RoundCap,
-                          Qt::RoundJoin));
-      QPoint a = mouseEvent->pos();
-      
-      for ( std::vector<Graph::Location>::const_iterator it = path.begin();
-            it != path.end(); ++it)
+      if ( !currpath.empty())
       {
-         QPoint b(it->first, it->second);
-         painter.drawLine(b, a);
-         a = b;
+         painter.setPen(QPen(QColor(255,0,0), 2, Qt::SolidLine, Qt::RoundCap,
+                             Qt::RoundJoin));
+         
+         std::vector<Graph::Location>::const_iterator it = currpath.begin();
+         QPoint a = QPoint( it->first, it->second );
+         for ( std::vector<Graph::Location>::const_iterator it = currpath.begin();
+               it != currpath.end(); ++it)
+         {
+            QPoint b(it->first, it->second);
+            painter.drawLine(a,b);
+            a = b;
+         }
       }
       
-      update(QRect(QPoint(0,0), displayImage.size() ) );
+      if ( !path.empty())
+      {
+         painter.setPen(QPen(QColor(0,255,0), 2, Qt::SolidLine, Qt::RoundCap,
+                             Qt::RoundJoin));
+         
+         std::vector<Graph::Location>::const_iterator it = path.begin();
+         QPoint a = QPoint( it->first, it->second );
+         for ( std::vector<Graph::Location>::const_iterator it = path.begin();
+               it != path.end(); ++it)
+         {
+            QPoint b(it->first, it->second);
+            painter.drawLine(a,b);
+            a = b;
+         }
+      }
+      
+      update();
+   }
+   else if ( event->type() == QEvent::KeyPress &&
+             QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) )
+   {
+      qDebug()<<"Shift";   
+      displayData = !displayData;
+      update();
+      return true;
    }
    
    return false;

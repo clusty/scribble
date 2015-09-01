@@ -22,6 +22,10 @@ Graph::aStar( const Graph::Location& goal )
       {
          break;
       }
+      else
+      {
+         frontier.pop();         
+      }
       
       Graph::Neighbours n = getNeighbours( current );
       for ( Graph::Neighbours::const_iterator it = n.begin();

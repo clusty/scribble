@@ -7,6 +7,8 @@
 #include <cmath>
 #include <QImage>
 
+#include<cassert>
+
 template<typename T, typename Number=int>
 struct PriorityQueue {
   typedef std::pair<Number, T> PQElement;
@@ -27,8 +29,13 @@ struct PriorityQueue {
 
   inline T get() {
     T best_item = elements.top().second;
-    elements.pop();
+    //elements.pop();
     return best_item;
+  }
+  
+  inline void pop()
+  {
+      elements.pop();     
   }
 };
 
@@ -47,7 +54,7 @@ private:
    std::set<Location> getNeighbours(const Location &l) const
    {
       std::set<Location> neighbours;
-      int dir[][2] = {{-1,0},{1,0}, {0,-1}, {0,1}, {-1,-1},{1,-1}, {-1,-1}, {1,1}};
+      int dir[][2] = {{-1,0},{1,0}, {0,-1}, {0,1}/*, {-1,-1},{1,-1}, {-1,-1}, {1,1}*/};
       for ( unsigned i = 0; i<sizeof(dir);++i)
       {
          Location n; n.first = l.first + dir[i][0]; n.second = l.second + dir[i][1];
@@ -63,7 +70,7 @@ private:
    
    inline float heuristic(const Graph::Location& a, const Graph::Location& b) 
    {
-     return abs(a.first - b.first) + abs(a.second - b.second);
+     return abs(a.first - b.first) + abs(a.second - b.second) ;
    }
    
    float cost(const Location&a , const Location& b) const
@@ -71,7 +78,8 @@ private:
       QPoint x(a.first, a.second);
       QPoint y(b.first, b.second);
       float c = qRed(_cost->pixel(y)) / 255.0;
-      return 1000* c;
+      assert(c <= 1);
+      return c;
    }
    
    
